@@ -43,7 +43,7 @@ docker service scale <stack-name>_worker=<num_of_task>
 ```
 
 ## Data & Code
-If you need to inject data and code into the containers use `data` and `code` volumes respectively in `/home/data` and `/home/code`
+If you need to inject data and code into the containers use `data` and `code` volumes respectively in `/home/data` and `/home/code`.
 
 ## Jupyter Scala
 [Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala) notebook will be built and configured for running, to launch the notebook follow the following commands:
