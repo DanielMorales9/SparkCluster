@@ -17,7 +17,7 @@ This Docker container contains a full Spark distribution with the following comp
 * Scala 2.12.2
 * Spark 2.2.0
 
-It also includes the [Jupyter Notebook](https://github.com/jupyter/notebook) notebook along with scala integration [Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala)
+It also includes the [Jupyter Notebook](https://github.com/jupyter/notebook) along with scala integration [Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala)
 
 ## Docker Swarm
 A `docker-compose.yml` file is provided to run the spark-cluster in the [Docker Swarm](https://docs.docker.com/engine/swarm/) environment
