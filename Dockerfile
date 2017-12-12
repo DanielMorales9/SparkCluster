@@ -107,7 +107,11 @@ RUN apt-get -y update && \
     sed -i -e s/INFO/ERROR/g $SPARK_HOME/conf/log4j.properties && \
     ln -s ${SPARK_HOME} spark 
 
-EXPOSE 8888
+RUN mkdir -p /home/code && \
+    mkdir -p /home/data
+
+VOLUME /home/code
+VOLUME /home/data
 WORKDIR $SPARK_HOME
-#CMD ["/bin/bash"]
+
 CMD ["bin/spark-class", "org.apache.spark.deploy.master.Master"]

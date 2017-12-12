@@ -8,7 +8,9 @@ Docker configuration for spark cluster
 2. [Docker Swarm](#docker-swarm)
    1. [Usage](#usage)
    2. [Scaling](#scaling)
-3. [Jupyter Scala](#jupyter-scala)
+3. [Data & Code](#data-&-code)
+4. [Jupyter Scala](#jupyter-scala)
+
 ## Overview
 This Docker container contains a full Spark distribution with the following components:
 
@@ -40,8 +42,11 @@ If you need more worker instances, consider to scale the number of instances by 
 docker service scale <stack-name>_worker=<num_of_task>
 ```
 
+## Data & Code
+If you need to inject data and code into the containers use `data` and `code` volumes respectively in `/home/data` and `/home/code`
+
 ## Jupyter Scala
-[Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala) notebook will be build and configured for running, to launch the notebook follow the following commands:
+[Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala) notebook will be built and configured for running, to launch the notebook follow the following commands:
 ```bash
 docker exec -it <stack-name>_master.<id> bash
 jupyter notebook --allow-root
