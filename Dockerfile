@@ -44,7 +44,7 @@ RUN curl -sL --retry 3 --insecure \
   && rm -rf $JAVA_HOME/man
 
 # HADOOP
-ENV HADOOP_VERSION 2.8.0
+ENV HADOOP_VERSION 2.6.0
 ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 RUN curl -sL --retry 3 \
@@ -55,7 +55,7 @@ RUN curl -sL --retry 3 \
  && chown -R root:root $HADOOP_HOME
 
 # SPARK
-ENV SPARK_VERSION 2.2.0
+ENV SPARK_VERSION 1.6.3
 ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
 ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
@@ -66,8 +66,8 @@ RUN curl -sL --retry 3 \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
  && chown -R root:root $SPARK_HOME
 
+ARG SCALA_VERSION=2.10.4
 # Scala related variables.
-ARG SCALA_VERSION=2.12.2
 ARG SCALA_BINARY_ARCHIVE_NAME=scala-${SCALA_VERSION}
 ARG SCALA_BINARY_DOWNLOAD_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_BINARY_ARCHIVE_NAME}.tgz
 
@@ -76,14 +76,10 @@ ARG SBT_VERSION=0.13.15
 ARG SBT_BINARY_ARCHIVE_NAME=sbt-$SBT_VERSION
 ARG SBT_BINARY_DOWNLOAD_URL=https://dl.bintray.com/sbt/native-packages/sbt/${SBT_VERSION}/${SBT_BINARY_ARCHIVE_NAME}.tgz
 
-#Jupyter scala
-ARG JUPYTER_BINARY_DOWNLOAD=https://github.com/alexarchambault/jupyter-scala.git
-
 # Configure env variables for Scala, SBT and Spark.
 # Also configure PATH env variable to include binary folders of Java, Scala, SBT and Spark.
 ENV SCALA_HOME  /usr/scala
 ENV SBT_HOME    /usr/sbt
-ENV JUP_HOME	/usr/jupyter-scala
 ENV PATH        $PATH:$JAVA_HOME/bin:$SCALA_HOME/bin:$SBT_HOME/bin:$JAVA_HOME/bin:$HADOOP_HOME/bin:$SPARK_HOME/bin
 
 WORKDIR /usr
@@ -95,20 +91,19 @@ RUN apt-get -y update && \
     rm -rf /tmp/* && \
     wget -qO - ${SCALA_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
     wget -qO - ${SBT_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/  && \
-    git clone $JUPYTER_BINARY_DOWNLOAD && \
     pip install jupyter && \ 
-    cd jupyter-scala && \
-    sbt publishLocal && \
-    ./jupyter-scala --id scala-develop --name "Scala" --force && \
     cd /usr/ && \
     ln -s ${SCALA_BINARY_ARCHIVE_NAME} scala && \
     cp $SPARK_HOME/conf/log4j.properties.template $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/WARN/ERROR/g $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/INFO/ERROR/g $SPARK_HOME/conf/log4j.properties && \
-    ln -s ${SPARK_HOME} spark 
+    ln -s ${SPARK_HOME} spark && \
+    pip install toree && \
+    jupyter toree install --spark_home=${SPARK_HOME} --interpreters=Scala,PySpark,SparkR,SQL
 
 RUN mkdir -p /home/code && \
-    mkdir -p /home/data
+    mkdir -p /home/data && \ 
+    ln -s ${HADOOP_HOME} /usr/hadoop
 
 VOLUME /home/code
 VOLUME /home/data

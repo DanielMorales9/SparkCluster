@@ -9,18 +9,17 @@ Docker configuration for spark cluster
    1. [Usage](#usage)
    2. [Scaling](#scaling)
 3. [Data & Code](#data-&-code)
-4. [Jupyter Scala](#jupyter-scala)
+4. [Toree](#jupyter-scala)
 
 ## Overview
 This Docker container contains a full Spark distribution with the following components:
 
-* Hadoop 2.8.0 (including YARN)
+* Hadoop 2.6.0 (including YARN)
 * Oracle JDK 8
-* Scala 2.12.2
-* Spark 2.2.0
+* Scala 2.10.4
+* Spark 1.6.3
 
-It also includes the [Jupyter Notebook](https://github.com/jupyter/notebook) along with scala integration [Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala)
-
+It also includes the [Apache Toree](https://github.com/apache/incubator-toree) installation.
 ## Docker Swarm
 A `docker-compose.yml` file is provided to run the spark-cluster in the [Docker Swarm](https://docs.docker.com/engine/swarm/) environment
 
@@ -45,8 +44,8 @@ docker service scale <stack-name>_worker=<num_of_task>
 ## Data & Code
 If you need to inject data and code into the containers use `data` and `code` volumes respectively in `/home/data` and `/home/code`.
 
-## Jupyter Scala
-[Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala) notebook will be built and configured for running, to launch the notebook follow the following commands:
+## Toree
+Toree notebook will is already built, to launch a spark notebook follow the following commands:
 ```bash
 docker exec -it <stack-name>_master.<id> bash
 jupyter notebook --ip 0.0.0.0 --allow-root

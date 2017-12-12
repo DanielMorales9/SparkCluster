@@ -22,3 +22,4 @@ vendor/pkg/
 hack/integration-cli-on-swarm/integration-cli-on-swarm
 data/
 code/
+buildAll.sh
