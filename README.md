@@ -28,7 +28,11 @@ Run the following command to run the Stack provided with the `docker-compose.yml
 docker stack deploy -c docker-compose.yml <stack-name>
 ```
 
-Feel free to customize the `docker-compose.yml` file for your need. 
+Feel free to customize the `docker-compose.yml` file for your need.    
+To stop the container 
+```bash
+docker stack rm <stack-name>
+```
 
 ### Scaling
 If you need more worker instances, consider to scale the number of instances by typing the following command:
