@@ -49,7 +49,7 @@ If you need to inject data and code into the containers use `data` and `code` vo
 [Jupyter Scala](https://github.com/jupyter-scala/jupyter-scala) notebook will be built and configured for running, to launch the notebook follow the following commands:
 ```bash
 docker exec -it <stack-name>_master.<id> bash
-jupyter notebook --allow-root
+jupyter notebook --ip 0.0.0.0 --allow-root
 ```
 
 
