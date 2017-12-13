@@ -9,15 +9,14 @@ Docker configuration for spark cluster
    1. [Usage](#usage)
    2. [Scaling](#scaling)
 3. [Data & Code](#data-&-code)
-4. [Toree](#jupyter-scala)
+4. [Toree](#toree)
 
 ## Overview
 This Docker container contains a full Spark distribution with the following components:
 
-* Hadoop 2.6.0 (including YARN)
 * Oracle JDK 8
-* Scala 2.10.4
-* Spark 1.6.3
+* Scala 2.11.12
+* Spark 2.2.1
 
 It also includes the [Apache Toree](https://github.com/apache/incubator-toree) installation.
 ## Docker Swarm
@@ -45,11 +44,13 @@ docker service scale <stack-name>_worker=<num_of_task>
 If you need to inject data and code into the containers use `data` and `code` volumes respectively in `/home/data` and `/home/code`.
 
 ## Toree
-Toree notebook will is already built, to launch a spark notebook follow the following commands:
+Apache Toree notebook is already built, to launch a spark notebook follow the following commands:
 ```bash
 docker exec -it <stack-name>_master.<id> bash
 jupyter notebook --ip 0.0.0.0 --allow-root
 ```
+
+Apache Toree includes SparkR, PySpark, Spark Scala and SQL. 
 
 
 

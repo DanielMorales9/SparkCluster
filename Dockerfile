@@ -16,13 +16,17 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-RUN apt-get update \
- && apt-get install -y curl unzip \
-    python3 python3-setuptools \
- && ln -s /usr/bin/python3 /usr/bin/python \
- && easy_install3 pip py4j \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y curl unzip nano screen tmux wget git \
+    python3 python3-setuptools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    easy_install3 pip py4j && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /usr/incubator-toree
 
 # http://blog.stuart.axelbrooke.com/python-3-on-spark-return-of-the-pythonhashseed
 ENV PYTHONHASHSEED 0
@@ -43,31 +47,20 @@ RUN curl -sL --retry 3 --insecure \
   && ln -s $JAVA_HOME /usr/java \
   && rm -rf $JAVA_HOME/man
 
-# HADOOP
-ENV HADOOP_VERSION 2.6.0
-ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
-ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
-RUN curl -sL --retry 3 \
-  "http://archive.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" \
-  | gunzip \
-  | tar -x -C /usr/ \
- && rm -rf $HADOOP_HOME/share/doc \
- && chown -R root:root $HADOOP_HOME
-
 # SPARK
-ENV SPARK_VERSION 1.6.3
-ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
-ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
-ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
-RUN curl -sL --retry 3 \
-  "http://d3kbcqa49mib13.cloudfront.net/${SPARK_PACKAGE}.tgz" \
-  | gunzip \
-  | tar x -C /usr/ \
- && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
- && chown -R root:root $SPARK_HOME
+ARG HADOOP_VERSION=2.7
+ARG SPARK_VERSION=2.2.1
+ARG SPARK_BINARY_ARCHIVE_NAME=spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}
+ARG SPARK_BINARY_DOWNLOAD_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/$SPARK_BINARY_ARCHIVE_NAME.tgz
+ENV SPARK_HOME /usr/spark
+RUN wget -qO - ${SPARK_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
+    mv /usr/$SPARK_BINARY_ARCHIVE_NAME $SPARK_HOME-${SPARK_VERSION} && \
+    chown -R root:root $SPARK_HOME-${SPARK_VERSION} && \
+    ln -s ${SPARK_HOME}-${SPARK_VERSION} ${SPARK_HOME}
 
-ARG SCALA_VERSION=2.10.4
+
 # Scala related variables.
+ARG SCALA_VERSION=2.11.12
 ARG SCALA_BINARY_ARCHIVE_NAME=scala-${SCALA_VERSION}
 ARG SCALA_BINARY_DOWNLOAD_URL=http://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_BINARY_ARCHIVE_NAME}.tgz
 
@@ -80,33 +73,28 @@ ARG SBT_BINARY_DOWNLOAD_URL=https://dl.bintray.com/sbt/native-packages/sbt/${SBT
 # Also configure PATH env variable to include binary folders of Java, Scala, SBT and Spark.
 ENV SCALA_HOME  /usr/scala
 ENV SBT_HOME    /usr/sbt
-ENV PATH        $PATH:$JAVA_HOME/bin:$SCALA_HOME/bin:$SBT_HOME/bin:$JAVA_HOME/bin:$HADOOP_HOME/bin:$SPARK_HOME/bin
+ENV PATH        $PATH:$JAVA_HOME/bin:$SCALA_HOME/bin:$SBT_HOME/bin:$JAVA_HOME/bin:$SPARK_HOME/bin
 
 WORKDIR /usr
+
+# copy pre-built toree
+COPY toree-0.2.0.dev1.tar.gz /usr/incubator-toree/
+VOLUME /home/code
+VOLUME /home/data
+
 # Download, uncompress and move all the required packages and libraries to their corresponding directories in /usr/local/ folder.
-RUN apt-get -y update && \
-    apt-get install -y vim screen tmux wget git && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/* && \
-    wget -qO - ${SCALA_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
+RUN wget -qO - ${SCALA_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
     wget -qO - ${SBT_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/  && \
-    pip install jupyter && \ 
-    cd /usr/ && \
     ln -s ${SCALA_BINARY_ARCHIVE_NAME} scala && \
     cp $SPARK_HOME/conf/log4j.properties.template $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/WARN/ERROR/g $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/INFO/ERROR/g $SPARK_HOME/conf/log4j.properties && \
-    ln -s ${SPARK_HOME} spark && \
-    pip install toree && \
-    jupyter toree install --spark_home=${SPARK_HOME} --interpreters=Scala,PySpark,SparkR,SQL
+    pip install jupyter && \ 
+    pip install ./incubator-toree/toree-0.2.0.dev1.tar.gz && \
+    jupyter toree install --spark_home=$SPARK_HOME-$SPARK_VERSION --interpreters=Scala,PySpark,SparkR,SQL && \
+    mkdir -p /home/code && \
+    mkdir -p /home/data 
 
-RUN mkdir -p /home/code && \
-    mkdir -p /home/data && \ 
-    ln -s ${HADOOP_HOME} /usr/hadoop
-
-VOLUME /home/code
-VOLUME /home/data
 WORKDIR $SPARK_HOME
 
 CMD ["bin/spark-class", "org.apache.spark.deploy.master.Master"]
