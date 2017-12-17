@@ -1,51 +1,60 @@
-FROM debian:jessie
+FROM tenentedan9/ubuntu_jdk-8
 MAINTAINER DanielMorales9
 
-RUN apt-get update \
- && apt-get install -y locales \
- && dpkg-reconfigure -f noninteractive locales \
- && locale-gen C.UTF-8 \
- && /usr/sbin/update-locale LANG=C.UTF-8 \
- && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
- && locale-gen \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-# Users with other locales should set this in their derivative image
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+USER root
 
 RUN apt-get update && \
-    apt-get install -y curl unzip nano screen tmux wget git \
-    python3 python3-setuptools && \
+    apt-get install -y curl unzip nano screen tmux wget git openssh-server openssh-client python3-setuptools python3-pip && \
+    pip3 install --upgrade setuptools pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/* && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    easy_install3 pip py4j && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /usr/incubator-toree
+
 
 # http://blog.stuart.axelbrooke.com/python-3-on-spark-return-of-the-pythonhashseed
 ENV PYTHONHASHSEED 0
 ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
-# JAVA
-ARG JAVA_MAJOR_VERSION=8
-ARG JAVA_UPDATE_VERSION=131
-ARG JAVA_BUILD_NUMBER=11
-ENV JAVA_HOME /usr/jdk1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}
+WORKDIR /usr
 
-RUN curl -sL --retry 3 --insecure \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
-  "http://download.oracle.com/otn-pub/java/jdk/${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-b${JAVA_BUILD_NUMBER}/d54c1d3a095b4ff2b6607d096fa80163/server-jre-${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-linux-x64.tar.gz" \
-  | gunzip \
-  | tar x -C /usr/ \
-  && ln -s $JAVA_HOME /usr/java \
-  && rm -rf $JAVA_HOME/man
+# HADOOP
+ARG HADOOP_VERSION=2.7.5
+ARG HADOOP_BINARY_ARCHIVE_NAME=hadoop-$HADOOP_VERSION
+ARG HADOOP_BINARY_DOWNLOAD_URL=http://mirror.koddos.net/apache/hadoop/common/$HADOOP_BINARY_ARCHIVE_NAME/$HADOOP_BINARY_ARCHIVE_NAME.tar.gz
+
+RUN wget -qO - $HADOOP_BINARY_DOWNLOAD_URL | tar -xz -C /usr/ && \
+    ln -s $HADOOP_BINARY_ARCHIVE_NAME hadoop
+
+ENV HADOOP_HOME=/usr/hadoop
+ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin
+
+RUN mkdir -p /usr/hdfs/namenode && \ 
+    mkdir -p /usr/hdfs/datanode && \
+    mkdir $HADOOP_HOME/logs
+
+# HADOOP master slave configuration
+COPY config/* /tmp/
+RUN mkdir -p ~/.ssh/config &&\ 
+    mv /tmp/ssh_config ~/.ssh/config && \
+    mv /tmp/hadoop-env.sh $HADOOP_HOME/etc/hadoop/hadoop-env.sh && \
+    mv /tmp/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml && \ 
+    mv /tmp/core-site.xml $HADOOP_HOME/etc/hadoop/core-site.xml && \
+    mv /tmp/mapred-site.xml $HADOOP_HOME/etc/hadoop/mapred-site.xml && \
+    mv /tmp/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml && \
+    mv /tmp/slaves $HADOOP_HOME/etc/hadoop/slaves && \
+    mv /tmp/entrypoint.sh ~/entrypoint.sh && \
+    chmod +x $HADOOP_HOME/sbin/start-dfs.sh && \
+    chmod +x $HADOOP_HOME/sbin/start-yarn.sh && \
+    chmod +x ~/entrypoint.sh && \
+    hdfs namenode -format && \
+    chmod 600 /root/.ssh/config && \
+    chown root:root /root/.ssh/config && \
+    ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa && \
+    cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 # SPARK
 ARG HADOOP_VERSION=2.7
@@ -58,6 +67,7 @@ RUN wget -qO - ${SPARK_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
     chown -R root:root $SPARK_HOME-${SPARK_VERSION} && \
     ln -s ${SPARK_HOME}-${SPARK_VERSION} ${SPARK_HOME}
 
+WORKDIR /usr
 
 # Scala related variables.
 ARG SCALA_VERSION=2.11.12
@@ -75,7 +85,6 @@ ENV SCALA_HOME  /usr/scala
 ENV SBT_HOME    /usr/sbt
 ENV PATH        $PATH:$JAVA_HOME/bin:$SCALA_HOME/bin:$SBT_HOME/bin:$JAVA_HOME/bin:$SPARK_HOME/bin
 
-WORKDIR /usr
 
 # copy pre-built toree
 COPY toree-0.2.0.dev1.tar.gz /usr/incubator-toree/
@@ -89,12 +98,10 @@ RUN wget -qO - ${SCALA_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
     cp $SPARK_HOME/conf/log4j.properties.template $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/WARN/ERROR/g $SPARK_HOME/conf/log4j.properties && \
     sed -i -e s/INFO/ERROR/g $SPARK_HOME/conf/log4j.properties && \
-    pip install jupyter && \ 
-    pip install ./incubator-toree/toree-0.2.0.dev1.tar.gz && \
+    pip3 install jupyter && \ 
+    pip3 install ./incubator-toree/toree-0.2.0.dev1.tar.gz && \
     jupyter toree install --spark_home=$SPARK_HOME-$SPARK_VERSION --interpreters=Scala,PySpark,SparkR,SQL && \
     mkdir -p /home/code && \
     mkdir -p /home/data 
 
-WORKDIR $SPARK_HOME
-
-CMD ["bin/spark-class", "org.apache.spark.deploy.master.Master"]
+CMD ["sh", "-c", "~/entrypoint.sh"]

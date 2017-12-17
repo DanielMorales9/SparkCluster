@@ -15,6 +15,7 @@ Docker configuration for spark cluster
 This Docker container contains a full Spark distribution with the following components:
 
 * Oracle JDK 8
+* Hadoop 2.7.5
 * Scala 2.11.12
 * Spark 2.2.1
 
