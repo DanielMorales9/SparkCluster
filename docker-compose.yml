@@ -1,7 +1,7 @@
 version: "3"
 services:
   master:
-    image: spark-cluster:latest
+    image: tenentedan9/spark-cluster:latest
     hostname: master
     environment:
       - constraint:role==master
@@ -30,7 +30,7 @@ services:
       - ./data:/home/data
       - ./code:/home/code
   worker:
-    image: spark-cluster:latest
+    image: tenentedan9/spark-cluster:latest
     hostname: worker
     depends_on:
       - master
