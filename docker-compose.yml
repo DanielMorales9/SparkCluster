@@ -3,6 +3,8 @@ services:
   master:
     image: tenentedan9/spark-cluster:latest
     hostname: master
+    networks:
+      - core
     environment:
       - constraint:role==master
     ports:
@@ -32,10 +34,12 @@ services:
   worker:
     image: tenentedan9/spark-cluster:latest
     hostname: worker
+    networks:
+      - core
     depends_on:
       - master
     environment:
       - constraint:role!=master
 networks:
-  default:
-    driver: overlay
+  core:
+    external: true
