@@ -49,8 +49,10 @@ If you need to inject data and code into the containers use `data` and `code` vo
 Apache Toree notebook is already built, to launch a spark notebook follow the following commands:
 ```bash
 docker exec -it <stack-name>_master.<id> bash
-jupyter notebook --ip 0.0.0.0 --allow-root
+SPARK_OPTS='--master=spark://master:7077' jupyter notebook --ip 0.0.0.0 --allow-root
 ```
+
+The last command allows the notebook to execute jobs in cluster mode rather than in local mode. 
 
 Apache Toree includes SparkR, PySpark, Spark Scala and SQL. 
 
