@@ -24,8 +24,9 @@ It also includes the [Apache Toree](https://github.com/apache/incubator-toree) i
 A `docker-compose.yml` file is provided to run the spark-cluster in the [Docker Swarm](https://docs.docker.com/engine/swarm/) environment
 
 ### Usage
-Run the following command to run the Stack provided with the `docker-compose.yml`. It contains a spark master service and a worker instance. 
+Run the following commands to run the Stack provided with the `docker-compose.yml`. It contains a spark master service and a worker instance. 
 ```bash
+docker network create -d overlay --attachable --scope swarm core  
 docker stack deploy -c docker-compose.yml <stack-name>
 ```
 
