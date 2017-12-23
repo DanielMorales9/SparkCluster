@@ -43,6 +43,9 @@ services:
       - 8081:8081
     environment:
       - constraint:role!=master
+    volumes: 
+      - ./data:/home/data
+      - ./code:/home/code
 networks:
   core:
     external: true
