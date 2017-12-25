@@ -7,6 +7,7 @@ Docker configuration for spark cluster
 1. [Overview](#overview)
 2. [Docker Swarm](#docker-swarm)
    1. [Usage](#usage)
+      1. [Multi-Host Swarm](#multi-host-swarm)
    2. [Scaling](#scaling)
 3. [Data & Code](#data-&-code)
 4. [Toree](#toree)
@@ -24,14 +25,17 @@ It also includes the [Apache Toree](https://github.com/apache/incubator-toree) i
 A `docker-compose.yml` file is provided to run the spark-cluster in the [Docker Swarm](https://docs.docker.com/engine/swarm/) environment
 
 ### Usage
-Run the following commands to run the Stack provided with the `docker-compose.yml`. It contains a spark master service and a worker instance. 
+Type the following commands to run the stack provided with the `docker-compose.yml`. It contains a spark master service and a worker instance. 
 ```bash
 docker network create -d overlay --attachable --scope swarm core  
 docker stack deploy -c docker-compose.yml <stack-name>
 ```
 
-Feel free to customize the `docker-compose.yml` file for your need.    
-To stop the container 
+#### Multi-host swarm
+To run the stack in cluster mode, create the swarm before creating the overlay network.   
+Otherwise the stack will deployed in a single swarm node --- the manager. 
+
+To stop the container type:
 ```bash
 docker stack rm <stack-name>
 ```
