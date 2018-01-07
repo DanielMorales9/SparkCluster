@@ -96,8 +96,6 @@ RUN wget -qO - ${SCALA_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/ && \
     wget -qO - ${SBT_BINARY_DOWNLOAD_URL} | tar -xz -C /usr/  && \
     ln -s ${SCALA_BINARY_ARCHIVE_NAME} scala && \
     cp $SPARK_HOME/conf/log4j.properties.template $SPARK_HOME/conf/log4j.properties && \
-    sed -i -e s/WARN/ERROR/g $SPARK_HOME/conf/log4j.properties && \
-    sed -i -e s/INFO/ERROR/g $SPARK_HOME/conf/log4j.properties && \
     pip3 install jupyter && \ 
     pip3 install ./incubator-toree/toree-0.2.0.dev1.tar.gz && \
     jupyter toree install --spark_home=$SPARK_HOME-$SPARK_VERSION --interpreters=Scala,PySpark,SparkR,SQL && \

@@ -30,7 +30,7 @@ services:
       - 49707:49707
       - 2122:2122
     volumes: 
-      - ./data:/home/data
+      - /home/daniel/Desktop/MSD:/home/data
       - ./code:/home/code
   worker:
     image: tenentedan9/spark-cluster:latest
@@ -43,9 +43,6 @@ services:
       - 8081:8081
     environment:
       - constraint:role!=master
-    volumes: 
-      - ./data:/home/data
-      - ./code:/home/code
 networks:
   core:
     external: true

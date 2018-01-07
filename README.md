@@ -11,6 +11,7 @@ Docker configuration for spark cluster
    2. [Scaling](#scaling)
 3. [Data & Code](#data-&-code)
 4. [Toree](#toree)
+5. [TODOs](#todos)
 
 ## Overview
 This Docker container contains a full Spark distribution with the following components:
@@ -61,4 +62,8 @@ The last command allows the notebook to execute jobs in cluster mode rather than
 Apache Toree includes SparkR, PySpark, Spark Scala and SQL. 
 
 
-
+##TODOs
+* Separating Hadoop environment and Spark environment in different images  
+   - Creating indipendent services for Hadoop namenode and datanodes  
+   - Creating indipendent services for Spark master and workers
+   - Make Hadoop datanode and Spark workers available from any physical/virtual machine
