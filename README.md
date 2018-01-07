@@ -62,7 +62,7 @@ The last command allows the notebook to execute jobs in cluster mode rather than
 Apache Toree includes SparkR, PySpark, Spark Scala and SQL. 
 
 
-##TODOs
+## TODOs
 * Separating Hadoop environment and Spark environment in different images  
    - Creating indipendent services for Hadoop namenode and datanodes  
    - Creating indipendent services for Spark master and workers
