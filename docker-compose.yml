@@ -1,7 +1,49 @@
 version: "3"
 services:
+  namenode:
+    image: hadoop-cluster
+    hostname: namenode
+    networks:
+      - core
+    environment:
+      - constraint:role==master
+    ports:
+      - 8088:8088
+      - 8020:8020
+      - 50010:50010
+      - 50020:50020
+      - 50070:50070
+      - 50090:50090
+      - 8040:8040
+      - 8042:8042
+    volumes: 
+      - /home/daniel/Desktop/MSD:/home/data
+      - ./code:/home/code
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      # add placement constraint to allocate namenode on particular server
+      # placement:
+      # constraints:
+      #    - node.hostname == master.node.com
+  datanode:
+    image: hadoop-cluster
+    hostname: datanode
+    networks:
+      - core
+    environment:
+      - constraint:role==master
+    ports:
+      - "50075"
+    deploy:
+      # mode global will deploy one datanode per docker swarm node
+      mode: global
+      restart_policy:
+        condition: on-failure
   master:
-    image: tenentedan9/spark-cluster:latest
+    image: spark-cluster
     hostname: master
     networks:
       - core
@@ -9,31 +51,16 @@ services:
       - constraint:role==master
     ports:
       - 4040:4040
+      # rest service
       - 6066:6066
       - 7077:7077
-      - 8088:8088
-      - 8020:8020
       - 8080:8080
       - 8888:8888
-      - 50010:50010
-      - 50020:50020
-      - 50070:50070
-      - 50075:50075
-      - 50090:50090
-      - 19888:19888
-      - 8030:8030
-      - 8031:8031
-      - 8032:8032
-      - 8033:8033
-      - 8040:8040
-      - 8042:8042
-      - 49707:49707
-      - 2122:2122
     volumes: 
       - /home/daniel/Desktop/MSD:/home/data
-      - ./code:/home/code
+      - ../code:/home/code
   worker:
-    image: tenentedan9/spark-cluster:latest
+    image: spark-cluster
     hostname: worker
     networks:
       - core
@@ -41,8 +68,15 @@ services:
       - master
     ports:
       - 8081:8081
+      - 4041:4040
     environment:
       - constraint:role!=master
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 networks:
   core:
     external: true
+

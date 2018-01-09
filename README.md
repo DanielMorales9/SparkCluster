@@ -63,7 +63,5 @@ Apache Toree includes SparkR, PySpark, Spark Scala and SQL.
 
 
 ## TODOs
-* Separating Hadoop environment and Spark environment in different images  
-   - Creating indipendent services for Hadoop namenode and datanodes  
-   - Creating indipendent services for Spark master and workers
-   - Make Hadoop datanode and Spark workers available from any physical/virtual machine
+* Separating Jupyter notebook into a different  
+
