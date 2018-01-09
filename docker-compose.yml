@@ -1,7 +1,7 @@
 version: "3"
 services:
   namenode:
-    image: hadoop-cluster
+    image: tenentedan9/hadoop-cluster:latest
     hostname: namenode
     networks:
       - core
@@ -17,7 +17,7 @@ services:
       - 8040:8040
       - 8042:8042
     volumes: 
-      - /home/daniel/Desktop/MSD:/home/data
+      - ./data:/home/data
       - ./code:/home/code
     deploy:
       mode: replicated
@@ -29,7 +29,7 @@ services:
       # constraints:
       #    - node.hostname == master.node.com
   datanode:
-    image: hadoop-cluster
+    image: tenentedan9/hadoop-cluster:latest
     hostname: datanode
     networks:
       - core
@@ -43,7 +43,7 @@ services:
       restart_policy:
         condition: on-failure
   master:
-    image: spark-cluster
+    image: tenentedan9/spark-cluster:latest
     hostname: master
     networks:
       - core
@@ -57,10 +57,10 @@ services:
       - 8080:8080
       - 8888:8888
     volumes: 
-      - /home/daniel/Desktop/MSD:/home/data
-      - ../code:/home/code
+      - ./data:/home/data
+      - ./code:/home/code
   worker:
-    image: spark-cluster
+    image: tenentedan9/spark-cluster:latest
     hostname: worker
     networks:
       - core
